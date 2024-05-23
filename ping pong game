@@ -1,0 +1,97 @@
+import pygame
+import random
+
+# Inicializar Pygame
+pygame.init()
+
+# Constantes
+ANCHO, ALTURA = 800, 600
+ANCHO_DE_PALETA, ALTURA_DE_PALETA = 10, 100
+TAMAÑO_BOLA = 15
+VELOCIDAD_PALETA = 5
+VELOCIDAD_BOLA_X = 5
+VELOCIDAD_BOLA_Y = 5
+BLANCO = (255, 255, 255)
+NEGRO = (0, 0, 0)
+
+# Creación de pantalla
+screen = pygame.display.set_mode((ANCHO, ALTURA))
+pygame.display.set_caption("Pong Game")
+
+# Inicializar paletas y bola
+paddle_a = pygame.Rect(
+    50, ALTURA // 2 - ALTURA_DE_PALETA // 2, ANCHO_DE_PALETA, ALTURA_DE_PALETA
+)
+paddle_b = pygame.Rect(
+    ANCHO - 50 - ANCHO_DE_PALETA,
+    ALTURA // 2 - ALTURA_DE_PALETA // 2,
+    ANCHO_DE_PALETA,
+    ALTURA_DE_PALETA,
+)
+ball = pygame.Rect(
+    ANCHO // 2 - TAMAÑO_BOLA // 2,
+    ALTURA // 2 - TAMAÑO_BOLA // 2,
+    TAMAÑO_BOLA,
+    TAMAÑO_BOLA,
+)
+
+# Direcciones de la bola
+ball_dx = VELOCIDAD_BOLA_X * random.choice([1, -1])
+ball_dy = VELOCIDAD_BOLA_Y * random.choice([1, -1])
+
+# Bucle del juego
+reloj = pygame.time.Clock()
+corriendo = True
+while corriendo:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            corriendo = False
+
+    # Movimientos de paletas
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] and paddle_a.top > 0:
+        paddle_a.y -= VELOCIDAD_PALETA
+    if keys[pygame.K_s] and paddle_a.bottom < ALTURA:
+        paddle_a.y += VELOCIDAD_PALETA
+    if keys[pygame.K_UP] and paddle_b.top > 0:
+        paddle_b.y -= VELOCIDAD_PALETA
+    if keys[pygame.K_DOWN] and paddle_b.bottom < ALTURA:
+        paddle_b.y += VELOCIDAD_PALETA
+
+    # Movimiento de la bola
+    ball.x += ball_dx
+    ball.y += ball_dy
+
+    # Colisión de bola con pared
+    if ball.top <= 0 or ball.bottom >= ALTURA:
+        ball_dy *= -1
+    if ball.left <= 0 or ball.right >= ANCHO:
+        ball_dx *= -1
+
+    # Colisión de pelota con paleta
+    if ball.colliderect(paddle_a) or ball.colliderect(paddle_b):
+        ball_dx *= -1
+
+    # Comprobar si hay fallos en la paleta
+    if ball.left <= 0 or ball.right >= ANCHO:
+        ball = pygame.Rect(
+            ANCHO // 2 - TAMAÑO_BOLA // 2,
+            ALTURA // 2 - TAMAÑO_BOLA // 2,
+            TAMAÑO_BOLA,
+            TAMAÑO_BOLA,
+        )
+        ball_dx = VELOCIDAD_BOLA_X * random.choice([1, -1])
+        ball_dy = VELOCIDAD_BOLA_Y * random.choice([1, -1])
+
+    # Dibujar todo
+    screen.fill(NEGRO)
+    pygame.draw.rect(screen, BLANCO, paddle_a)
+    pygame.draw.rect(screen, BLANCO, paddle_b)
+    pygame.draw.ellipse(screen, BLANCO, ball)
+    pygame.display.flip()
+
+    # Cuadros por segundo
+    reloj.tick(60)
+
+# Quitar juego
+pygame.quit()
